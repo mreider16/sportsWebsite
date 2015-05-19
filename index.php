@@ -1,30 +1,28 @@
 <html>
-<head><!-- CDN hosted by Cachefly -->
-<script src="//tinymce.cachefly.net/4.1/tinymce.min.js"></script>
-<script>tinymce.init({selector:'textarea'});</script>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 </head>
-
 <body>
-<form action="test2.php" method="POST">
-<textarea rows="20" name ="article"></textarea>
-<input type = "submit">
-</form>
-<?php
-$article = $_POST['article'];
-echo $article;
-?>
+<table border=1 class="table">
+<!-- <body background="pictures/LionsRoar.gif"> -->
 
+<tr class="warning">
+<td>Welcome To The Sports Blog</td><td>Marty Reider</td>
+</tr>
+</table>
 
 <?php
+echo '<a href="create.php">Create an article</a>';
+echo "<br>";
+echo '<a href="tags.php">Create a tag</a>';
+echo "<br><br><br><br>";
 //github question: branches and push and pull requests
 $link = mysqli_connect('localhost', 'mreider16', 'way59car', 'sports_website');
 if (!$link) {
     die('Could not connect: ' . mysql_error());
 }
 //echo 'Connected successfully<br><br>';
-
-$result = mysqli_query($link,"SELECT * FROM Article");
-//sorting articles by ID
+//background-image: url("pictures/LionsRoar.gif");
 
 /*
 while($rowsid = mysqli_fetch_array($result)) {
@@ -40,23 +38,42 @@ echo "Article Content: $article_content <br><br>";
 }
 */
 
+/*
+$tags = mysqli_query($link,"SELECT * FROM Tags");
+
+while($rows = mysqli_fetch_array($tags)) {
+
+
+    $tag = $rows['Tag_ID'];
+    $tagid = $rows['Tag'];
+    $sql = 'UPDATE Tags SET Tag = \''.$tag. "helloWorld".'\' WHERE Tag_ID = '. $tagid;
+    $update = mysqli_query($link,$sql);
+}
+//to do:
+//figure out MYSQL_ASSOC
+//figure out how to take every row in a certain table and change it
+//for example: take every tag and add hello world to the end of it
+*/
+    
+
 $result_tag = mysqli_query($link,"SELECT * FROM Tags");
 
 while ($row = mysqli_fetch_array($result_tag)) {
-        //echo '<a href="test2.php?page=">$row['Tag']</a>';
-        echo '<a href=' . '"test2.php?page=' . $row['Tag'] . '"' . '>' . $row['Tag'] . '</a>';
+        //echo '<a href="index.php?page=">$row['Tag']</a>';
+        echo '<a href=' . '"index.php?page=' . $row['Tag'] . '"' . '>' . $row['Tag'] . '</a>';
         
-        
-        
-       // echo '<option value=' . $row['username']. '>' . $row['username'] . '</option>';
+        //echo '<option value=' . $row['username']. '>' . $row['username'] . '</option>';
         echo "<br>";
-    }
-$page = $_GET['page'];
+}
+if (isset($_GET['page'])) {
+    $page = $_GET['page'];
+}
+//put isset
 //why is it default set to knicks?
 
 if (isset($page)) {
 
-echo "$page are the best team";
+//echo "$page are the best team";
 
     echo "<br><br><br><br>";
     $tag = mysqli_query($link,"SELECT Article_Name, Content, Tag FROM Article, Tags, ArticleTag WHERE ArticleTag.Article_ID 
@@ -79,17 +96,31 @@ else {
     echo "<br><br><br><br>";
     //sorting articles chronologically
     //is this the easiest way to display the column?
-    $order = mysqli_query($link,"SELECT Article_ID, Article_Name, Content FROM Article ORDER BY Date DESC");
+    $order = mysqli_query($link,"SELECT Article_ID, Article_Name, Content, Picture FROM Article ORDER BY Date DESC");
 
     while($rowsorder = mysqli_fetch_array($order)) {
-    //$orderArticle_id = $rowsorder['Article_ID'];
+    $orderArticle_id = $rowsorder['Article_ID'];
     $orderArticle_title = $rowsorder['Article_Name'];
     $orderArticle_content = $rowsorder['Content'];
+    $orderArticle_picture = $rowsorder['Picture'];
 
-    echo $orderArticle_id;
+    $uploadfile = "pictures/article_image_" . $orderArticle_id . "." . $orderArticle_picture;
+    $imageProperties = getimagesize("$uploadfile");
+    echo '<img src=' . "pictures/article_image_" . $orderArticle_id . "." . $orderArticle_picture . ' width="' . $imageProperties[0] . '" height="' . $imageProperties[1] . '" >';
+    
+    echo '<a href=' . '"viewer.php?page=' . $orderArticle_id . '"' . '>' . "$orderArticle_title" . '</a>';
+    echo "<br>";
+    $strArticleContent = strip_tags(substr("$orderArticle_content",0,20)) . "...";
+    echo "              " . "$strArticleContent";
+    //articles are getting cut off
+    echo "<br>";
+    //very confused: articles are showing up on the main page and they're not showing up in the database?
+    echo '<a href=' . '"edit.php?id=' . $orderArticle_id . '"' . '>Edit</a>';
+    echo "<br>";
+    echo '<a href=' . '"delete.php?id=' . $orderArticle_id . '"' . '>Delete</a>';
+
+    //echo '<a href=' . '"edit.php?page=' . $rowsorder['Article_Name'] . '"' . '>' . $rowsorder['Article_Name'] . '</a>';
     echo "<br><br>";
-    echo "Article Name: $orderArticle_title <br>";
-    echo "Article Content: $orderArticle_content <br><br>";
     }
 }
 
@@ -124,5 +155,6 @@ if (mysqli_num_rows($articleTag)==1)
 
 
 ?>
+
 </body>
 </html>

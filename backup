@@ -1,0 +1,118 @@
+<html>
+<head><!-- CDN hosted by Cachefly -->
+<script src="//tinymce.cachefly.net/4.1/tinymce.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<script>tinymce.init({selector:'textarea',fontsize_formats: "8pt 9pt 10pt 11pt 12pt 26pt 36pt",
+         theme: 'modern', toolbar: "undo redo pastetext | styleselect | fontselect | fontsizeselect | bold",  menubar : false});</script>
+</head>
+
+<body>
+
+  
+<form action="create.php" method="POST" enctype="multipart/form-data" class="form-horizontal">
+<!-- go to the viewer -->
+
+<input placeholder="Title" type="text" name="title"><br>
+<textarea rows="20" name ="article"></textarea>
+<input type = "file" name = "upload_picture">
+
+<?php
+
+$link       = mysqli_connect('localhost', 'mreider16', 'way59car', 'sports_website');
+$result_tag = mysqli_query($link, "SELECT * FROM Tags");
+//check if it is submitted and if there are any errors
+//3 states:
+//just opened the page
+//submitted with errors
+//submitted without errors
+
+while ($row = mysqli_fetch_array($result_tag)) {
+    echo '<input type = "checkbox" name = "tag[]" value =' . $row['Tag_ID'] . '>' . $row['Tag'];
+    echo "<br>";
+}
+
+?>
+
+<input name="submit" type = "submit">
+</div>
+</form>
+
+<?php
+//form is submitting everytime I load the page
+//is having a string counter the best solution?
+//how do i put title
+if (isset($_POST['article'], $_POST['title'])) {
+    $stU  = strlen($_POST['article']);
+    $stUT = strlen($_POST['title']);
+    if ($stU > 5 && $stUT > 1) {
+        $articlePost  = $_POST['article'];
+        $articleTitle = $_POST['title'];
+    }
+}
+//direct to a view article page where an id is passed through
+if (isset($_POST['submit'])) {
+    $link = mysqli_connect('localhost', 'mreider16', 'way59car', 'sports_website');
+    if (!$link) {
+        die('Could not connect: ' . mysql_error());
+    }
+    
+    $date = date("Y-m-d");
+    echo $date . "<br><br>";
+    
+    if (isset($articlePost, $articleTitle))
+    //error message
+        
+    //error for not uploading image
+        {
+        $originalName       = $_FILES['upload_picture']['name'];
+        $originalDirectory  = $_FILES['upload_picture']['tmp_name'];
+        $fileExtensionParse = explode(".", $originalName);
+        $fileExtension      = end($fileExtensionParse);
+        echo "$fileExtension";
+        
+        $insert = mysqli_query($link, "INSERT INTO Article (Article_Name,Content,Date,Picture) 
+        VALUES ('$articleTitle','$articlePost','$date','$fileExtension')");
+        print_r($insert);
+    } else {
+        echo '<div class="alert alert-danger">Please fill out a username and password</div>';
+    }
+    $id = mysqli_insert_id($link);
+    //only do this if tags are submitted
+    foreach ($_POST['tag'] as $tag) {
+        
+        $insertTag = mysqli_query($link, "INSERT INTO ArticleTag (Article_ID, Tag_ID) VALUES ('$id','$tag')");
+        
+    }
+    $target_dir = "pictures/";
+    $uploadfile = $target_dir . "article_image_" . $id . "." . $fileExtension;
+    if (move_uploaded_file($originalDirectory, $uploadfile)) {
+        echo "File is valid, and was successfully uploaded.\n";
+    } else {
+        echo "Possible file upload attack!\n";
+    }
+    
+    //print_r($_FILES);
+    echo "<br><br>";
+    //no echos before the header
+    header('Location: viewer.php?page=' . $id . '');
+}
+//go directly to the viewpage
+
+
+
+
+
+//don't submit article with empty title
+//add title field to form
+//image optional?
+//append file extention to uploaded file (explode function)
+//view page: display image to corresponding article. build the file name for the html image tag
+//maybe store file name in database as well as appending file name
+
+
+?>
+
+<a href="index.php">Return to homepage</a>
+
+</body>
+</html>
